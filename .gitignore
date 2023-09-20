@@ -1,0 +1,6 @@
+*.sh
+*.log
+*.txt
+*.js
+*.csv
+.env
