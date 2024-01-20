@@ -1,0 +1,330 @@
+---
+title: "Library Occupancy Over Time"
+output:
+  html_document:
+    highlight: "default"
+    theme: "simplex"
+    toc: true
+---
+
+```{r echo=FALSE}
+library(dotenv)
+library(DBI)
+library(RMySQL)
+
+to_datetime <- function(datetime_string) {
+  return(as.POSIXct(datetime_string, tz = "", format = "%Y-%m-%d %H:%M:%OS"))
+}
+
+entries_since_n_hrs_ago <- function(entries, datetimes, hours) {
+  most_recent_datetime <- tail(datetimes, n = 1)
+  n_hrs_ago <- most_recent_datetime - 60 * 60 * hours
+  entries_since <- subset(entries, datetimes >= n_hrs_ago)
+  return(entries_since)
+}
+
+db <- dbConnect(RMySQL::MySQL(),
+  dbname = "busyness",
+  host = Sys.getenv("DB_HOST"),
+  user = Sys.getenv("DB_USER"),
+  password = Sys.getenv("DB_PASSWORD")
+)
+
+hill_data <- dbReadTable(db, "hill")
+hill_data <- entries_since_n_hrs_ago(
+  hill_data, to_datetime(hill_data$record_datetime), 24 * 7 * 5
+)
+
+hunt_data <- dbReadTable(db, "hunt")
+hunt_data <- entries_since_n_hrs_ago(
+  hunt_data, to_datetime(hunt_data$record_datetime), 24 * 7 * 5
+)
+
+dbDisconnect(db)
+```
+
+# Hill
+
+## Stats
+
+### Current
+
+```{r echo=FALSE}
+most_recent_entry <- tail(hill_data, n = 1)
+```
+
+As of `r most_recent_entry$record_datetime` there are `r most_recent_entry$total_count` people in Hill (`r most_recent_entry$total_percent * 100`% capacity)
+
+East: `r most_recent_entry$east_count` (`r most_recent_entry$east_percent * 100`% capacity)
+
+Tower: `r most_recent_entry$tower_count` (`r most_recent_entry$tower_percent * 100`% capacity)
+
+West: `r most_recent_entry$west_count` (`r most_recent_entry$west_percent * 100`% capacity)
+
+
+### Recent
+```{r echo=FALSE}
+hill_datetimes <- to_datetime(hill_data$record_datetime)
+
+past_week_entries <-
+  entries_since_n_hrs_ago(hill_data, hill_datetimes, 24 * 7)
+
+past_day_entries <-
+  entries_since_n_hrs_ago(hill_data, hill_datetimes, 24)
+
+past_three_hrs_entries <-
+  entries_since_n_hrs_ago(hill_data, hill_datetimes, 3)
+```
+
+| Since           | Average Total Count                         | Average Overall Percent                             |
+| --------------- | ------------------------------------------- | --------------------------------------------------- |
+| Three hours ago | `r mean(past_three_hrs_entries$total_count)`| `r mean(past_three_hrs_entries$total_percent) * 100`|
+| One day ago     | `r mean(past_day_entries$total_count)`      | `r mean(past_day_entries$total_percent) * 100`      |
+| One week ago    | `r mean(past_week_entries$total_count)`     | `r mean(past_week_entries$total_percent) * 100`     |
+
+## Counts
+
+```{r echo=FALSE}
+entry_datetimes <- to_datetime(hill_data$record_datetime)
+
+# allow legend to be out of the graph area
+par(xpd = TRUE)
+
+plot(
+  entry_datetimes, hill_data$east_count,
+  col = "red", ylim = c(0, 1200),
+  xlab = "Datetime", ylab = "Count"
+)
+lines(entry_datetimes, hill_data$east_count, col = "red")
+
+points(entry_datetimes, hill_data$tower_count, col = "green")
+lines(entry_datetimes, hill_data$tower_count, col = "green")
+
+points(entry_datetimes, hill_data$west_count, col = "blue")
+lines(entry_datetimes, hill_data$west_count, col = "blue")
+
+points(entry_datetimes, hill_data$total_count)
+lines(entry_datetimes, hill_data$total_count)
+
+legend(
+  "topleft",
+  inset = c(0, -0.25), legend = c("Total", "East", "Tower", "West"),
+  fill = c("black", "red", "green", "blue")
+)
+```
+
+## Percents
+
+```{r echo=FALSE}
+entry_datetimes <- to_datetime(hill_data$record_datetime)
+
+# allow legend to be out of the graph area
+par(xpd = TRUE)
+
+
+plot(
+  entry_datetimes, hill_data$east_percent,
+  col = "red", ylim = c(0, 1),
+  xlab = "Datetime", ylab = "Current / Capacity"
+)
+lines(entry_datetimes, hill_data$east_percent, col = "red")
+
+points(entry_datetimes, hill_data$tower_percent, col = "green")
+lines(entry_datetimes, hill_data$tower_percent, col = "green")
+
+points(entry_datetimes, hill_data$west_percent, col = "blue")
+lines(entry_datetimes, hill_data$west_percent, col = "blue")
+
+points(entry_datetimes, hill_data$total_percent, col = "black")
+lines(entry_datetimes, hill_data$total_percent, col = "black")
+
+legend(
+  "topleft",
+  inset = c(0, -0.25), legend = c("Total", "East", "Tower", "West"),
+  fill = c("black", "red", "green", "blue")
+)
+```
+
+---
+
+# Hunt
+
+## Stats
+
+### Current
+
+```{r echo=FALSE}
+most_recent_entry <- tail(hunt_data, n = 1)
+```
+
+As of `r most_recent_entry$record_datetime` there are `r most_recent_entry$total_count` people in Hunt (`r most_recent_entry$total_percent * 100`% capacity)
+
+Level 2: `r most_recent_entry$level2_count` (`r most_recent_entry$level2_percent * 100`% capacity)
+
+Level 3: `r most_recent_entry$level3_count` (`r most_recent_entry$level3_percent * 100`% capacity)
+
+Level 4: `r most_recent_entry$level4_count` (`r most_recent_entry$level4_percent * 100`% capacity)
+
+Level 5: `r most_recent_entry$level5_count` (`r most_recent_entry$level5_percent * 100`% capacity)
+
+### Recent
+
+```{r echo=FALSE}
+hunt_datetimes <- to_datetime(hunt_data$record_datetime)
+
+past_week_entries <-
+  entries_since_n_hrs_ago(hunt_data, hunt_datetimes, 24 * 7)
+
+past_day_entries <-
+  entries_since_n_hrs_ago(hunt_data, hunt_datetimes, 24)
+
+past_three_hrs_entries <-
+  entries_since_n_hrs_ago(hunt_data, hunt_datetimes, 3)
+```
+
+| Since           | Average Total Count                         | Average Overall Percent                             |
+| --------------- | ------------------------------------------- | --------------------------------------------------- |
+| Three hours ago | `r mean(past_three_hrs_entries$total_count)`| `r mean(past_three_hrs_entries$total_percent) * 100`|
+| One day ago     | `r mean(past_day_entries$total_count)`      | `r mean(past_day_entries$total_percent) * 100`      |
+| One week ago    | `r mean(past_week_entries$total_count)`     | `r mean(past_week_entries$total_percent) * 100`     |
+
+## Counts
+
+```{r echo=FALSE}
+entry_datetimes <- to_datetime(hunt_data$record_datetime)
+
+# allow legend to be out of the graph area
+par(xpd = TRUE)
+
+
+plot(
+  entry_datetimes, hunt_data$level2_count,
+  col = "green", ylim = c(0, 1000),
+  xlab = "Datetime", ylab = "Count"
+)
+lines(entry_datetimes, hunt_data$level2_count, col = "green")
+
+points(entry_datetimes, hunt_data$level3_count, col = "red")
+lines(entry_datetimes, hunt_data$level3_count, col = "red")
+
+points(entry_datetimes, hunt_data$level4_count, col = "blue")
+lines(entry_datetimes, hunt_data$level4_count, col = "blue")
+
+points(entry_datetimes, hunt_data$level5_count, col = "orange")
+lines(entry_datetimes, hunt_data$level5_count, col = "orange")
+
+points(entry_datetimes, hunt_data$total_count, col = "black")
+lines(entry_datetimes, hunt_data$total_count, col = "black")
+
+
+legend(
+  "topleft",
+  inset = c(0, -0.25),
+  legend = c("Total", "Level 2", "Level 3", "Level 4", "Level 5"),
+  fill = c("black", "green", "red", "blue", "orange")
+)
+```
+
+## Percents
+
+```{r echo=FALSE}
+entry_datetimes <- to_datetime(hunt_data$record_datetime)
+
+# allow legend to be out of the graph area
+par(xpd = TRUE)
+
+plot(entry_datetimes, hunt_data$level2_percent,
+  col = "green", ylim = c(0, 1),
+  xlab = "Datetime", ylab = "Current / Capacity"
+)
+lines(entry_datetimes, hunt_data$level2_percent, col = "green")
+
+points(entry_datetimes, hunt_data$level3_percent, col = "red")
+lines(entry_datetimes, hunt_data$level3_percent, col = "red")
+
+points(entry_datetimes, hunt_data$level4_percent, col = "blue")
+lines(entry_datetimes, hunt_data$level4_percent, col = "blue")
+
+points(entry_datetimes, hunt_data$level5_percent, col = "orange")
+lines(entry_datetimes, hunt_data$level5_percent, col = "orange")
+
+points(entry_datetimes, hunt_data$total_percent, col = "black")
+lines(entry_datetimes, hunt_data$total_percent, col = "black")
+
+legend(
+  "topleft",
+  inset = c(0, -0.25),
+  legend = c("Total", "Level 2", "Level 3", "Level 4", "Level 5"),
+  fill = c("black", "green", "red", "blue", "orange")
+)
+```
+
+---
+
+# Hill vs Hunt
+
+## Counts
+
+```{r echo=FALSE}
+# allow legend to be out of the graph area
+par(xpd = TRUE)
+
+plot(
+  to_datetime(hill_data$record_datetime), hill_data$total_count,
+  type = "p", col = "blue", ylim = c(0, 1200),
+  xlab = "Datetime", ylab = "Count"
+)
+lines(
+  to_datetime(hill_data$record_datetime), hill_data$total_count,
+  col = "blue"
+)
+
+points(
+  to_datetime(hunt_data$record_datetime), hunt_data$total_count,
+  col = "red"
+)
+lines(
+  to_datetime(hunt_data$record_datetime), hunt_data$total_count,
+  col = "red"
+)
+
+legend(
+  "topleft",
+  inset = c(0, -0.25),
+  legend = c("Hill", "Hunt"),
+  fill = c("blue", "red")
+)
+```
+
+## Percents
+
+```{r echo=FALSE}
+# allow legend to be out of the graph area
+par(xpd = TRUE)
+
+plot(
+  to_datetime(hill_data$record_datetime), hill_data$total_percent,
+  type = "p", col = "blue", ylim = c(0, 1),
+  xlab = "Datetime", ylab = "Current / Capacity"
+)
+lines(
+  to_datetime(hill_data$record_datetime), hill_data$total_percent,
+  col = "blue"
+)
+
+points(
+  to_datetime(hunt_data$record_datetime), hunt_data$total_percent,
+  col = "red"
+)
+lines(
+  to_datetime(hunt_data$record_datetime), hunt_data$total_percent,
+  col = "red"
+)
+
+legend(
+  "topleft",
+  inset = c(0, -0.25),
+  legend = c("Hill", "Hunt"),
+  fill = c("blue", "red")
+)
+```
