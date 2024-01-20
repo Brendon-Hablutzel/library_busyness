@@ -1,6 +1,5 @@
 import requests
 import datetime
-import mysql.connector
 from typing import Dict, Any, List
 from dotenv import load_dotenv
 import logging
@@ -17,8 +16,6 @@ logging.basicConfig(filename=os.getenv("LOG_FILE"),
 HILL_API_URL = "https://www.lib.ncsu.edu/space-occupancy/realtime-data.php?id=264&library=hill"
 
 HUNT_API_URL = "https://www.lib.ncsu.edu/space-occupancy/realtime-data.php?id=1356&library=hunt"
-
-DATABASE_NAME = "busyness"
 
 
 def get_api_data(url: str) -> Dict[str, Any]:
@@ -98,20 +95,32 @@ def log_hunt_data(db: BusynessDB, current_datetime: str):
 def main():
     current_datetime = datetime.datetime.now().isoformat(" ", "seconds")
 
-    connection = mysql.connector.MySQLConnection(
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        database=DATABASE_NAME
+    user = os.getenv("DB_USER")
+    if user is None:
+        raise Exception("environment variable DB_USER not found")
+
+    password = os.getenv("DB_PASSWORD")
+    if password is None:
+        raise Exception("environment variable DB_PASSWORD not found")
+
+    host = os.getenv("DB_HOST")
+    if host is None:
+        raise Exception("environment variable DB_HOST not found")
+
+    connection = BusynessDB(
+        user=user,
+        password=password,
+        host=host,
     )
 
-    connection = BusynessDB(connection)
-
     try:
+        connection.create_hill_table()
+        connection.create_hunt_table()
+
         log_hill_data(connection, current_datetime)
         log_hunt_data(connection, current_datetime)
     except Exception as e:
-        logging.error(f"Error while getting and saving data: {e}")
+        logging.error(f"error while getting and saving data: {e}")
     else:
         logging.info("Library busyness logging process completed")
     finally:
