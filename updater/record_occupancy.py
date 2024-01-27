@@ -1,21 +1,56 @@
 import requests
 import datetime
 from typing import Dict, Any, List
-from dotenv import load_dotenv
 import logging
 import os
-from db import BusynessDB
+import mysql.connector
+from typing import Any, Sequence
 
-load_dotenv()
-
-logging.basicConfig(filename=os.getenv("LOG_FILE"),
-                    filemode='a',
-                    format='%(name)s at %(asctime)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
 
 HILL_API_URL = "https://www.lib.ncsu.edu/space-occupancy/realtime-data.php?id=264&library=hill"
 
 HUNT_API_URL = "https://www.lib.ncsu.edu/space-occupancy/realtime-data.php?id=1356&library=hunt"
+
+
+class BusynessDB:
+    def __init__(self, user: str, password: str, host: str, database_name: str):
+        connection = mysql.connector.MySQLConnection(
+            user=user,
+            password=password,
+            host=host,
+            database=database_name
+        )
+
+        self.connection = connection
+        self.cursor = connection.cursor()
+
+    def insert_hill_record(self, record: Sequence[Any]):
+        self.cursor.execute(
+            "INSERT INTO hill (record_datetime, active, total_count, total_percent, east_count, east_percent, tower_count, tower_percent, west_count, west_percent) \
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", record
+        )
+        self.connection.commit()
+
+    def insert_hunt_record(self, record: Sequence[Any]):
+        self.cursor.execute(
+            "INSERT INTO hunt (record_datetime, active, total_count, total_percent, level2_count, level2_percent, level3_count, level3_percent, level4_count, level4_percent, level5_count, level5_percent) \
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", record
+        )
+        self.connection.commit()
+
+    def last_hill_record(self):
+        self.cursor.execute(
+            "SELECT * FROM hill ORDER BY record_datetime DESC LIMIT 1")
+        return self.cursor.fetchone()
+
+    def last_hunt_record(self):
+        self.cursor.execute(
+            "SELECT * FROM hunt ORDER BY record_datetime DESC LIMIT 1")
+        return self.cursor.fetchone()
+
+    def close(self):
+        self.cursor.close()
+        self.connection.close()
 
 
 def get_api_data(url: str) -> Dict[str, Any]:
@@ -57,7 +92,7 @@ def log_hill_data(db: BusynessDB, current_datetime: str):
             float(west_data["percentage"])
         )
     except Exception as e:
-        raise Exception(f"Error parsing and coercing API data: {e}")
+        raise Exception(f"error parsing API data: {e}")
 
     db.insert_hill_record(new_record)
 
@@ -87,42 +122,46 @@ def log_hunt_data(db: BusynessDB, current_datetime: str):
             float(l5_data["percentage"])
         )
     except Exception as e:
-        raise Exception(f"Error parsing and coercing API data: {e}")
+        raise Exception(f"error parsing API data: {e}")
 
     db.insert_hunt_record(new_record)
 
 
 def main():
-    current_datetime = datetime.datetime.now().isoformat(" ", "seconds")
+    current_datetime = datetime.datetime.now()
+    current_datetime_str = current_datetime.isoformat(" ", "seconds")
 
-    user = os.getenv("DB_USER")
+    user = os.getenv("MYSQL_USER")
     if user is None:
-        raise Exception("environment variable DB_USER not found")
+        raise Exception("environment variable MYSQL_USER not set")
 
-    password = os.getenv("DB_PASSWORD")
+    password = os.getenv("MYSQL_PASSWORD")
     if password is None:
-        raise Exception("environment variable DB_PASSWORD not found")
+        raise Exception("environment variable MYSQL_PASSWORD not set")
 
-    host = os.getenv("DB_HOST")
+    host = os.getenv("MYSQL_HOST")
     if host is None:
-        raise Exception("environment variable DB_HOST not found")
+        raise Exception("environment variable MYSQL_HOST not set")
+
+    database_name = os.getenv("MYSQL_DATABASE")
+    if database_name is None:
+        raise Exception("environment variable MYSQL_DATABASE not set")
 
     connection = BusynessDB(
-        user=user,
-        password=password,
-        host=host,
+        user,
+        password,
+        host,
+        database_name
     )
 
     try:
-        connection.create_hill_table()
-        connection.create_hunt_table()
-
-        log_hill_data(connection, current_datetime)
-        log_hunt_data(connection, current_datetime)
+        log_hill_data(connection, current_datetime_str)
+        log_hunt_data(connection, current_datetime_str)
     except Exception as e:
+        print("Error", e)
         logging.error(f"error while getting and saving data: {e}")
     else:
-        logging.info("Library busyness logging process completed")
+        logging.info("library busyness logging process completed")
     finally:
         connection.close()
 

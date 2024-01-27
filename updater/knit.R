@@ -1,17 +1,14 @@
 library(rmarkdown)
-library(dotenv)
 library(DBI)
 library(RMySQL)
 
-# file paths are prepended with frontend because this file
-# should be run from the root directory of the project
-source("frontend/helpers.R")
+source("helpers.R")
 
 db <- dbConnect(RMySQL::MySQL(),
-  dbname = "busyness",
-  host = Sys.getenv("DB_HOST"),
-  user = Sys.getenv("DB_USER"),
-  password = Sys.getenv("DB_PASSWORD")
+  dbname = Sys.getenv("MYSQL_DATABASE"),
+  host = Sys.getenv("MYSQL_HOST"),
+  user = Sys.getenv("MYSQL_USER"),
+  password = Sys.getenv("MYSQL_PASSWORD")
 )
 
 hill_data <- dbReadTable(db, "hill")
@@ -27,6 +24,8 @@ hunt_data <- entries_since_n_hrs_ago(
 dbDisconnect(db)
 
 rmarkdown::render(
-  "frontend/libraries.Rmd", "html_document",
+  "libraries.Rmd",
+  "html_document",
+  output_dir = "static",
   params = list(hill_data = hill_data, hunt_data = hunt_data)
 )

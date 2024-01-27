@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  db:
+    build:
+      context: db
+    restart: always
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'mysqladmin ping -h 127.0.0.1 --password=$MYSQL_ROOT_PASSWORD --silent'
+        ]
+      interval: 3s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - net
+    environment:
+      - MYSQL_DATABASE=busyness
+      - MYSQL_ROOT_PASSWORD
+    expose:
+      - 3306
+      - 33060
+
+  updater:
+    container_name: updater
+    build:
+      context: updater
+    environment:
+      - MYSQL_DATABASE=busyness
+      - MYSQL_PASSWORD
+      - MYSQL_HOST=db
+      - MYSQL_USER
+    networks:
+      - net
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - libraries-data:/updater/static
+
+  server:
+    build:
+      context: server
+    volumes:
+      - libraries-data:/updater/static
+    ports:
+      - 8080:8080
+
+volumes:
+  db-data:
+  libraries-data:
+
+
+networks:
+  net:
