@@ -34,6 +34,7 @@ services:
       - MYSQL_PASSWORD
       - MYSQL_HOST=db
       - MYSQL_USER
+      - ENVIRONMENT=production
     networks:
       - net
     depends_on:

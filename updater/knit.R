@@ -2,30 +2,44 @@ library(rmarkdown)
 library(DBI)
 library(RMySQL)
 
-source("helpers.R")
+environment <- Sys.getenv("ENVIRONMENT")
 
-db <- dbConnect(RMySQL::MySQL(),
-  dbname = Sys.getenv("MYSQL_DATABASE"),
-  host = Sys.getenv("MYSQL_HOST"),
-  user = Sys.getenv("MYSQL_USER"),
-  password = Sys.getenv("MYSQL_PASSWORD")
-)
+if (environment == "development") {
+  hill_data <- tail(read.csv("hill.csv", header = TRUE), n = 500)
+  hunt_data <- tail(read.csv("hunt.csv", header = TRUE), n = 500)
 
-hill_data <- dbReadTable(db, "hill")
-hill_data <- entries_since_n_hrs_ago(
-  hill_data, to_datetime(hill_data$record_datetime), 24 * 7 * 5
-)
+  rmarkdown::render(
+    "libraries.Rmd",
+    "html_document",
+    output_dir = "static",
+    params = list(hill_data = hill_data, hunt_data = hunt_data)
+  )
+} else if (environment == "production") {
+  db <- dbConnect(RMySQL::MySQL(),
+    dbname = Sys.getenv("MYSQL_DATABASE"),
+    host = Sys.getenv("MYSQL_HOST"),
+    user = Sys.getenv("MYSQL_USER"),
+    password = Sys.getenv("MYSQL_PASSWORD")
+  )
 
-hunt_data <- dbReadTable(db, "hunt")
-hunt_data <- entries_since_n_hrs_ago(
-  hunt_data, to_datetime(hunt_data$record_datetime), 24 * 7 * 5
-)
+  hill_data <- dbGetQuery(
+    db,
+    "SELECT * FROM hill ORDER BY record_datetime DESC LIMIT 500"
+  )
 
-dbDisconnect(db)
+  hunt_data <- dbGetQuery(
+    db,
+    "SELECT * FROM hunt ORDER BY record_datetime DESC LIMIT 500"
+  )
 
-rmarkdown::render(
-  "libraries.Rmd",
-  "html_document",
-  output_dir = "static",
-  params = list(hill_data = hill_data, hunt_data = hunt_data)
-)
+  dbDisconnect(db)
+
+  rmarkdown::render(
+    "libraries.Rmd",
+    "html_document",
+    output_dir = "static",
+    params = list(hill_data = hill_data, hunt_data = hunt_data)
+  )
+} else {
+  write("invalid environment: " + environment, stderr())
+}
