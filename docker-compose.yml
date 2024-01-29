@@ -4,7 +4,6 @@ services:
   db:
     build:
       context: db
-    restart: always
     healthcheck:
       test:
         [
@@ -46,6 +45,7 @@ services:
   server:
     build:
       context: server
+    restart: always
     volumes:
       - libraries-data:/updater/static
     ports:
