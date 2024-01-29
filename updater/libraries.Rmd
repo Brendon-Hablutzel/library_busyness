@@ -44,7 +44,7 @@ hill_percents <- data.frame(
   total = hill_data$total_percent
 )
 
-most_recent_entry <- tail(hill_data, n = 1)
+most_recent_entry <- head(hill_data, n = 1)
 ```
 
 ## Stats
@@ -121,7 +121,7 @@ hunt_percents <- data.frame(
   total = hunt_data$total_percent
 )
 
-most_recent_entry <- tail(hunt_data, n = 1)
+most_recent_entry <- head(hunt_data, n = 1)
 ```
 
 ## Stats
@@ -213,5 +213,6 @@ ggplot(
 ) +
   geom_line(linewidth = 1) +
   xlab("Datetime") +
-  ylab("% capacity")
+  ylab("% capacity") +
+  ylim(0, 1)
 ```
