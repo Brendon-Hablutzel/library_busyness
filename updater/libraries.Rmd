@@ -18,11 +18,15 @@ to_datetime <- function(datetime_string) {
   return(as.POSIXct(datetime_string, tz = "", format = "%Y-%m-%d %H:%M:%OS"))
 }
 
-entries_since_n_hrs_ago <- function(entries, datetimes, hours) {
-  most_recent_datetime <- tail(datetimes, n = 1)
-  n_hrs_ago <- most_recent_datetime - 60 * 60 * hours
+entries_since <- function(entries, datetimes, hours_ago) {
+  most_recent_datetime <- max(datetimes)
+  n_hrs_ago <- most_recent_datetime - 60 * 60 * hours_ago
   entries_since <- subset(entries, datetimes >= n_hrs_ago)
   return(entries_since)
+}
+
+most_recent_record <- function(entries, datetimes) {
+  return(head(entries_since(entries, datetimes, 0)))
 }
 ```
 
@@ -44,7 +48,7 @@ hill_percents <- data.frame(
   total = hill_data$total_percent
 )
 
-most_recent_entry <- head(hill_data, n = 1)
+most_recent_entry <- most_recent_record(hill_data, hill_datetimes)
 ```
 
 ## Stats
@@ -63,13 +67,13 @@ West: `r most_recent_entry$west_count` (`r most_recent_entry$west_percent * 100`
 ### Recent
 ```{r echo=FALSE}
 past_week_entries <-
-  entries_since_n_hrs_ago(hill_data, hill_datetimes, 24 * 7)
+  entries_since(hill_data, hill_datetimes, 24 * 7)
 
 past_day_entries <-
-  entries_since_n_hrs_ago(hill_data, hill_datetimes, 24)
+  entries_since(hill_data, hill_datetimes, 24)
 
 past_three_hrs_entries <-
-  entries_since_n_hrs_ago(hill_data, hill_datetimes, 3)
+  entries_since(hill_data, hill_datetimes, 3)
 ```
 
 | Since           | Average Total Count                         | Average Overall Percent                             |
@@ -84,7 +88,9 @@ past_three_hrs_entries <-
 ggplot(hill_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   geom_area(alpha = 0.5, colour = "black", linewidth = 0.2) +
   xlab("Datetime") +
-  ylab("# of people")
+  ylab("# of people") +
+  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_y_continuous(expand = c(0, 0))
 ```
 
 ## Percents
@@ -94,7 +100,8 @@ ggplot(hill_percents, aes(x = record_datetime, y = total)) +
   geom_area(colour = "black", linewidth = 0.5, fill = "blue", alpha = 0.3) +
   xlab("Datetime") +
   ylab("% capacity") +
-  ylim(0, 1)
+  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))
 ```
 
 ---
@@ -121,7 +128,7 @@ hunt_percents <- data.frame(
   total = hunt_data$total_percent
 )
 
-most_recent_entry <- head(hunt_data, n = 1)
+most_recent_entry <- most_recent_record(hunt_data, hunt_datetimes)
 ```
 
 ## Stats
@@ -142,13 +149,13 @@ Level 5: `r most_recent_entry$level5_count` (`r most_recent_entry$level5_percent
 
 ```{r echo=FALSE}
 past_week_entries <-
-  entries_since_n_hrs_ago(hunt_data, hunt_datetimes, 24 * 7)
+  entries_since(hunt_data, hunt_datetimes, 24 * 7)
 
 past_day_entries <-
-  entries_since_n_hrs_ago(hunt_data, hunt_datetimes, 24)
+  entries_since(hunt_data, hunt_datetimes, 24)
 
 past_three_hrs_entries <-
-  entries_since_n_hrs_ago(hunt_data, hunt_datetimes, 3)
+  entries_since(hunt_data, hunt_datetimes, 3)
 ```
 
 | Since           | Average Total Count                         | Average Overall Percent                             |
@@ -163,7 +170,9 @@ past_three_hrs_entries <-
 ggplot(hunt_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   geom_area(alpha = 0.5, colour = "black", linewidth = 0.2) +
   xlab("Datetime") +
-  ylab("# of people")
+  ylab("# of people") +
+  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_y_continuous(expand = c(0, 0))
 ```
 
 ## Percents
@@ -173,7 +182,8 @@ ggplot(hunt_percents, aes(x = record_datetime, y = total)) +
   geom_area(colour = "black", linewidth = 0.5, fill = "blue", alpha = 0.3) +
   xlab("Datetime") +
   ylab("% capacity") +
-  ylim(0, 1)
+  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))
 ```
 
 ---
@@ -201,7 +211,9 @@ ggplot(
 ) +
   geom_line(linewidth = 1) +
   xlab("Datetime") +
-  ylab("# of people")
+  ylab("# of people") +
+  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_y_continuous(expand = c(0, 0))
 ```
 
 ## Percents
@@ -214,5 +226,6 @@ ggplot(
   geom_line(linewidth = 1) +
   xlab("Datetime") +
   ylab("% capacity") +
-  ylim(0, 1)
+  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))
 ```

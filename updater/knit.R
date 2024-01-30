@@ -41,5 +41,5 @@ if (environment == "development") {
     params = list(hill_data = hill_data, hunt_data = hunt_data)
   )
 } else {
-  write("invalid environment: " + environment, stderr())
+  write(paste("invalid environment: ", environment), stderr())
 }
