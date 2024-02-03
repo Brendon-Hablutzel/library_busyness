@@ -51,6 +51,24 @@ services:
     ports:
       - 8080:8080
 
+  scripts:
+    build:
+      context: scripts
+    environment:
+      - MYSQL_DATABASE=busyness
+      - MYSQL_PASSWORD
+      - MYSQL_HOST=db
+      - MYSQL_USER
+    volumes:
+      - type: bind
+        source: scripts/data
+        target: /scripts/data
+    networks:
+      - net
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   db-data:
   libraries-data:
