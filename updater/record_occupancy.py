@@ -53,6 +53,33 @@ class BusynessDB:
         self.connection.close()
 
 
+def initialize_db() -> BusynessDB:
+    user = os.getenv("MYSQL_USER")
+    if user is None:
+        raise Exception("environment variable MYSQL_USER not set")
+
+    password = os.getenv("MYSQL_PASSWORD")
+    if password is None:
+        raise Exception("environment variable MYSQL_PASSWORD not set")
+
+    host = os.getenv("MYSQL_HOST")
+    if host is None:
+        raise Exception("environment variable MYSQL_HOST not set")
+
+    database_name = os.getenv("MYSQL_DATABASE")
+    if database_name is None:
+        raise Exception("environment variable MYSQL_DATABASE not set")
+
+    data_store = BusynessDB(
+        user,
+        password,
+        host,
+        database_name
+    )
+
+    return data_store
+
+
 def get_api_data(url: str) -> Dict[str, Any]:
     try:
         response = requests.get(url)
@@ -131,28 +158,30 @@ def main():
     current_datetime = datetime.datetime.now()
     current_datetime_str = current_datetime.isoformat(" ", "seconds")
 
-    user = os.getenv("MYSQL_USER")
-    if user is None:
-        raise Exception("environment variable MYSQL_USER not set")
+    # user = os.getenv("MYSQL_USER")
+    # if user is None:
+    #     raise Exception("environment variable MYSQL_USER not set")
 
-    password = os.getenv("MYSQL_PASSWORD")
-    if password is None:
-        raise Exception("environment variable MYSQL_PASSWORD not set")
+    # password = os.getenv("MYSQL_PASSWORD")
+    # if password is None:
+    #     raise Exception("environment variable MYSQL_PASSWORD not set")
 
-    host = os.getenv("MYSQL_HOST")
-    if host is None:
-        raise Exception("environment variable MYSQL_HOST not set")
+    # host = os.getenv("MYSQL_HOST")
+    # if host is None:
+    #     raise Exception("environment variable MYSQL_HOST not set")
 
-    database_name = os.getenv("MYSQL_DATABASE")
-    if database_name is None:
-        raise Exception("environment variable MYSQL_DATABASE not set")
+    # database_name = os.getenv("MYSQL_DATABASE")
+    # if database_name is None:
+    #     raise Exception("environment variable MYSQL_DATABASE not set")
 
-    connection = BusynessDB(
-        user,
-        password,
-        host,
-        database_name
-    )
+    # connection = BusynessDB(
+    #     user,
+    #     password,
+    #     host,
+    #     database_name
+    # )
+
+    connection = initialize_db()
 
     try:
         log_hill_data(connection, current_datetime_str)

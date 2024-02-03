@@ -1,14 +1,14 @@
 FROM ubuntu:22.04
 
-WORKDIR /updater
-
-COPY . .
-
 # installation of r-base asks for location
 ENV TZ=America/New_York
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update && apt-get install -y libmysqlclient-dev r-base pandoc python3.10 python3-pip
+
+WORKDIR /updater
+
+COPY . .
 
 RUN pip3 install -r requirements.txt
 
