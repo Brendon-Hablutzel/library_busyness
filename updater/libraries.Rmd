@@ -7,7 +7,11 @@ output:
     toc: true
 params:
   hill_data: NULL
+  hill_active: NULL
+  most_recent_hill_record: NULL
   hunt_data: NULL
+  hunt_active: NULL
+  most_recent_hunt_record: NULL
 ---
 
 ```{r echo=FALSE}
@@ -25,8 +29,12 @@ entries_since <- function(entries, datetimes, hours_ago) {
   return(entries_since)
 }
 
-most_recent_record <- function(entries, datetimes) {
-  return(head(entries_since(entries, datetimes, 0)))
+get_active_text <- function(active) {
+  if (active == 1) {
+    return("is active")
+  } else {
+    return("is not active")
+  }
 }
 ```
 
@@ -48,8 +56,10 @@ hill_percents <- data.frame(
   total = hill_data$total_percent
 )
 
-most_recent_entry <- most_recent_record(hill_data, hill_datetimes)
+most_recent_entry <- most_recent_hill_record
 ```
+
+## Hill `r get_active_text(hill_active)`
 
 ## Stats
 
@@ -82,8 +92,6 @@ past_three_hrs_entries <-
 | One day ago     | `r mean(past_day_entries$total_count)`      | `r mean(past_day_entries$total_percent) * 100`      |
 | One week ago    | `r mean(past_week_entries$total_count)`     | `r mean(past_week_entries$total_percent) * 100`     |
 
-## Counts
-
 ```{r echo=FALSE, fig.width=10, fig.height=6}
 ggplot(hill_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   geom_area(alpha = 0.5, colour = "black", linewidth = 0.2) +
@@ -92,8 +100,6 @@ ggplot(hill_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
   scale_y_continuous(expand = c(0, 0))
 ```
-
-## Percents
 
 ```{r echo=FALSE, fig.width=10, fig.height=6}
 ggplot(hill_percents, aes(x = record_datetime, y = total)) +
@@ -128,8 +134,10 @@ hunt_percents <- data.frame(
   total = hunt_data$total_percent
 )
 
-most_recent_entry <- most_recent_record(hunt_data, hunt_datetimes)
+most_recent_entry <- most_recent_hunt_record
 ```
+
+## Hunt `r get_active_text(hunt_active)`
 
 ## Stats
 
@@ -164,8 +172,6 @@ past_three_hrs_entries <-
 | One day ago     | `r mean(past_day_entries$total_count)`      | `r mean(past_day_entries$total_percent) * 100`      |
 | One week ago    | `r mean(past_week_entries$total_count)`     | `r mean(past_week_entries$total_percent) * 100`     |
 
-## Counts
-
 ```{r echo=FALSE, fig.width=10, fig.height=6}
 ggplot(hunt_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   geom_area(alpha = 0.5, colour = "black", linewidth = 0.2) +
@@ -174,8 +180,6 @@ ggplot(hunt_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
   scale_y_continuous(expand = c(0, 0))
 ```
-
-## Percents
 
 ```{r echo=FALSE, fig.width=10, fig.height=6}
 ggplot(hunt_percents, aes(x = record_datetime, y = total)) +

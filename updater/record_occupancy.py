@@ -4,6 +4,7 @@ from typing import Dict, Any, List
 import logging
 import os
 import mysql.connector
+import csv
 from typing import Any, Sequence
 
 
@@ -12,7 +13,24 @@ HILL_API_URL = "https://www.lib.ncsu.edu/space-occupancy/realtime-data.php?id=26
 HUNT_API_URL = "https://www.lib.ncsu.edu/space-occupancy/realtime-data.php?id=1356&library=hunt"
 
 
-class BusynessDB:
+class DataStoreInterface:
+    def insert_hill_record(self, record: Sequence[Any]):
+        return
+
+    def insert_hunt_record(self, record: Sequence[Any]):
+        return
+
+    def last_hill_record(self):
+        return
+
+    def last_hunt_record(self):
+        return
+
+    def close(self):
+        return
+
+
+class BusynessDB(DataStoreInterface):
     def __init__(self, user: str, password: str, host: str, database_name: str):
         connection = mysql.connector.MySQLConnection(
             user=user,
@@ -80,6 +98,34 @@ def initialize_db() -> BusynessDB:
     return data_store
 
 
+class BusynessCSV(DataStoreInterface):
+    def __init__(self):
+        self.hill_file = open("hill.csv", "a")
+        self.hunt_file = open("hunt.csv", "a")
+
+    def insert_hill_record(self, record: Sequence[Any]):
+        writer = csv.writer(self.hill_file)
+        writer.writerow(record)
+
+    def insert_hunt_record(self, record: Sequence[Any]):
+        writer = csv.writer(self.hunt_file)
+        writer.writerow(record)
+
+    def last_hill_record(self):
+        reader = csv.reader(self.hill_file)
+        rows = [row for row in reader]
+        return rows[-1]
+
+    def last_hunt_record(self):
+        reader = csv.reader(self.hunt_file)
+        rows = [row for row in reader]
+        return rows[-1]
+
+    def close(self):
+        self.hill_file.close()
+        self.hunt_file.close()
+
+
 def get_api_data(url: str) -> Dict[str, Any]:
     try:
         response = requests.get(url)
@@ -97,98 +143,115 @@ def get_area_by_name(areas: List[Dict[str, Any]], name: str) -> Dict[str, Any]:
     raise Exception(f"No area with name {name} found")
 
 
-def log_hill_data(db: BusynessDB, current_datetime: str):
+def log_hill_data(db: DataStoreInterface, current_datetime: str):
     api_data = get_api_data(HILL_API_URL)
 
-    areas = api_data["childCounts"]
-    east_data = get_area_by_name(areas, "East")
-    tower_data = get_area_by_name(areas, "Tower")
-    west_data = get_area_by_name(areas, "West")
+    if api_data["isActive"]:
 
-    try:
+        areas = api_data["childCounts"]
+        east_data = get_area_by_name(areas, "East")
+        tower_data = get_area_by_name(areas, "Tower")
+        west_data = get_area_by_name(areas, "West")
+
+        try:
+            new_record = (
+                current_datetime,
+                1,
+                int(api_data["count"]),
+                float(api_data["percentage"]),
+                int(east_data["count"]),
+                float(east_data["percentage"]),
+                int(tower_data["count"]),
+                float(tower_data["percentage"]),
+                int(west_data["count"]),
+                float(west_data["percentage"])
+            )
+        except Exception as e:
+            raise Exception(f"error parsing API data: {e}")
+
+        db.insert_hill_record(new_record)
+    else:
         new_record = (
             current_datetime,
-            bool(api_data["isActive"]),
-            int(api_data["count"]),
-            float(api_data["percentage"]),
-            int(east_data["count"]),
-            float(east_data["percentage"]),
-            int(tower_data["count"]),
-            float(tower_data["percentage"]),
-            int(west_data["count"]),
-            float(west_data["percentage"])
+            0,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
         )
-    except Exception as e:
-        raise Exception(f"error parsing API data: {e}")
-
-    db.insert_hill_record(new_record)
+        db.insert_hill_record(new_record)
 
 
-def log_hunt_data(db: BusynessDB, current_datetime: str):
+def log_hunt_data(db: DataStoreInterface, current_datetime: str):
     api_data = get_api_data(HUNT_API_URL)
 
-    areas = api_data["childCounts"]
-    l2_data = get_area_by_name(areas, "Level 2")
-    l3_data = get_area_by_name(areas, "Level 3")
-    l4_data = get_area_by_name(areas, "Level 4")
-    l5_data = get_area_by_name(areas, "Level 5")
+    if api_data["isActive"]:
 
-    try:
+        areas = api_data["childCounts"]
+        l2_data = get_area_by_name(areas, "Level 2")
+        l3_data = get_area_by_name(areas, "Level 3")
+        l4_data = get_area_by_name(areas, "Level 4")
+        l5_data = get_area_by_name(areas, "Level 5")
+
+        try:
+            new_record = (
+                current_datetime,
+                1,
+                int(api_data["count"]),
+                float(api_data["percentage"]),
+                int(l2_data["count"]),
+                float(l2_data["percentage"]),
+                int(l3_data["count"]),
+                float(l3_data["percentage"]),
+                int(l4_data["count"]),
+                float(l4_data["percentage"]),
+                int(l5_data["count"]),
+                float(l5_data["percentage"])
+            )
+        except Exception as e:
+            raise Exception(f"error parsing API data: {e}")
+
+        db.insert_hunt_record(new_record)
+    else:
         new_record = (
             current_datetime,
-            bool(api_data["isActive"]),
-            int(api_data["count"]),
-            float(api_data["percentage"]),
-            int(l2_data["count"]),
-            float(l2_data["percentage"]),
-            int(l3_data["count"]),
-            float(l3_data["percentage"]),
-            int(l4_data["count"]),
-            float(l4_data["percentage"]),
-            int(l5_data["count"]),
-            float(l5_data["percentage"])
+            0,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
         )
-    except Exception as e:
-        raise Exception(f"error parsing API data: {e}")
-
-    db.insert_hunt_record(new_record)
+        db.insert_hill_record(new_record)
 
 
 def main():
     current_datetime = datetime.datetime.now()
     current_datetime_str = current_datetime.isoformat(" ", "seconds")
 
-    # user = os.getenv("MYSQL_USER")
-    # if user is None:
-    #     raise Exception("environment variable MYSQL_USER not set")
-
-    # password = os.getenv("MYSQL_PASSWORD")
-    # if password is None:
-    #     raise Exception("environment variable MYSQL_PASSWORD not set")
-
-    # host = os.getenv("MYSQL_HOST")
-    # if host is None:
-    #     raise Exception("environment variable MYSQL_HOST not set")
-
-    # database_name = os.getenv("MYSQL_DATABASE")
-    # if database_name is None:
-    #     raise Exception("environment variable MYSQL_DATABASE not set")
-
-    # connection = BusynessDB(
-    #     user,
-    #     password,
-    #     host,
-    #     database_name
-    # )
-
-    connection = initialize_db()
+    environment = os.getenv("ENVIRONMENT")
+    if environment == "production":
+        connection = initialize_db()
+    elif environment == "development":
+        connection = BusynessCSV()
+    else:
+        raise Exception("Invalid environment")
 
     try:
         log_hill_data(connection, current_datetime_str)
         log_hunt_data(connection, current_datetime_str)
     except Exception as e:
-        print("Error", e)
         logging.error(f"error while getting and saving data: {e}")
+        print("Error:", e)
     else:
         logging.info("library busyness logging process completed")
     finally:
