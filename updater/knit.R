@@ -56,7 +56,7 @@ if (environment == "development") {
   )
   hunt_active <- head(hunt_data, n = 1)$active
   hunt_data <- subset(hunt_data, active == 1)
-  most_recent_hunt_record <- head(hill_data, n = 1)
+  most_recent_hunt_record <- head(hunt_data, n = 1)
 
   dbDisconnect(db)
 
