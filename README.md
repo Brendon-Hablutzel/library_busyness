@@ -16,11 +16,11 @@ Other environment variables and their defaults:
 
 Start nginx server: `docker compose up server -d`
 
-Run updater and stop database afterward: `docker compose run updater && docker compose down db`
+Run updater and stop database afterward: `docker compose run --rm updater && docker compose down db`
 
 Stop all services: `docker compose down`
 
-Run a script: `docker compose run scripts <script>` where scripts is one of:
+Run a script: `docker compose run --rm scripts <script>` where scripts is one of:
  - `import.py` - imports data from csv files in the scripts/data/imports directory (csv files must be named `hill.csv` and `hunt.csv`)
  - `export.py` - exports data into a csv file per library in the scripts/data/exports directory
 
