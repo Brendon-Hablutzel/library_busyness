@@ -21,8 +21,8 @@ Run updater and stop database afterward: `docker compose run --rm updater && doc
 Stop all services: `docker compose down`
 
 Run a script: `docker compose run --rm scripts <script>` where scripts is one of:
- - `import.py` - imports data from csv files in the scripts/data/imports directory (csv files must be named `hill.csv` and `hunt.csv`)
- - `export.py` - exports data into a csv file per library in the scripts/data/exports directory
+ - `import` - imports data from csv files in the scripts/data/imports directory (csv files must be named `hill.csv` and `hunt.csv`)
+ - `export` - exports data into a csv file per library in the scripts/data/exports directory
 
 # Data storage
 
