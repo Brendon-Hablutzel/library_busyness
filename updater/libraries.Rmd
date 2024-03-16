@@ -7,19 +7,23 @@ output:
     toc: true
 params:
   hill_data: NULL
-  hill_active: NULL
-  most_recent_hill_record: NULL
   hunt_data: NULL
-  hunt_active: NULL
-  most_recent_hunt_record: NULL
 ---
 
 ```{r echo=FALSE}
 library(ggplot2)
 library(tidyr)
 
+hill_data <- hill_data$result
+hunt_data <- hunt_data$result
+
 to_datetime <- function(datetime_string) {
-  return(as.POSIXct(datetime_string, tz = "", format = "%Y-%m-%d %H:%M:%OS"))
+  return(
+    as.POSIXct(
+      substr(datetime_string, 0, 18),
+      tz = "", format = "%Y-%m-%dT%H:%M:%OS"
+    )
+  )
 }
 
 entries_since <- function(entries, datetimes, hours_ago) {
@@ -56,10 +60,10 @@ hill_percents <- data.frame(
   total = hill_data$total_percent
 )
 
-most_recent_entry <- most_recent_hill_record
+most_recent_entry <- head(hill_data, n = 1)
 ```
 
-## Hill `r get_active_text(hill_active)`
+## Hill `r get_active_text(most_recent_entry$active)`
 
 ## Stats
 
@@ -72,7 +76,6 @@ East: `r most_recent_entry$east_count` (`r most_recent_entry$east_percent * 100`
 Tower: `r most_recent_entry$tower_count` (`r most_recent_entry$tower_percent * 100`% capacity)
 
 West: `r most_recent_entry$west_count` (`r most_recent_entry$west_percent * 100`% capacity)
-
 
 ### Recent
 ```{r echo=FALSE}
@@ -134,10 +137,10 @@ hunt_percents <- data.frame(
   total = hunt_data$total_percent
 )
 
-most_recent_entry <- most_recent_hunt_record
+most_recent_entry <- head(hunt_data, n = 1)
 ```
 
-## Hunt `r get_active_text(hunt_active)`
+## Hunt `r get_active_text(most_recent_entry$active)`
 
 ## Stats
 

@@ -3,7 +3,7 @@ version: '3'
 services:
   db:
     build:
-      context: db
+      context: data/db
     healthcheck:
       test:
         [
@@ -16,7 +16,7 @@ services:
     volumes:
       - db-data:/var/lib/mysql
     networks:
-      - net
+      - back-net
     environment:
       - MYSQL_DATABASE=busyness
       - MYSQL_ROOT_PASSWORD
@@ -33,12 +33,13 @@ services:
       - MYSQL_PASSWORD
       - MYSQL_HOST=db
       - MYSQL_USER
-      - ENVIRONMENT=production
+      - API_HOST=api
+      - API_PORT=3000
     networks:
-      - net
+      - front-net
     depends_on:
-      db:
-        condition: service_healthy
+      api:
+        condition: service_started
     volumes:
       - libraries-data:/updater/static
 
@@ -51,23 +52,24 @@ services:
     ports:
       - 8080:8080
 
-  scripts:
+  api:
     build:
-      context: scripts
+      context: data/api
     environment:
       - MYSQL_DATABASE=busyness
-      - MYSQL_PASSWORD
-      - MYSQL_HOST=db
       - MYSQL_USER
-    volumes:
-      - type: bind
-        source: scripts/data
-        target: /scripts/data
+      - MYSQL_PASSWORD
+      - MYSQL_PORT=3306
+      - MYSQL_HOST=db
+      - API_PORT=3000
     networks:
-      - net
+      - back-net
+      - front-net
     depends_on:
       db:
         condition: service_healthy
+    expose:
+      - 3000
 
 volumes:
   db-data:
@@ -75,4 +77,5 @@ volumes:
 
 
 networks:
-  net:
+  back-net:
+  front-net:
