@@ -25,14 +25,21 @@ services:
       - 33060
 
   updater:
-    container_name: updater
     build:
       context: updater
     environment:
-      - MYSQL_DATABASE=busyness
-      - MYSQL_PASSWORD
-      - MYSQL_HOST=db
-      - MYSQL_USER
+      - API_HOST=api
+      - API_PORT=3000
+    networks:
+      - front-net
+    depends_on:
+      api:
+        condition: service_started
+
+  knitter:
+    build:
+      context: knitter
+    environment:
       - API_HOST=api
       - API_PORT=3000
     networks:
@@ -41,14 +48,14 @@ services:
       api:
         condition: service_started
     volumes:
-      - libraries-data:/updater/static
+      - libraries-data:/knitter/static
 
   server:
     build:
       context: server
     restart: always
     volumes:
-      - libraries-data:/updater/static
+      - libraries-data:/knitter/static
     ports:
       - 8080:8080
 

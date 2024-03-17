@@ -1,0 +1,6 @@
+r-cran-httr2
+r-cran-jsonlite
+r-cran-rmarkdown
+r-cran-shiny
+r-cran-ggplot2
+r-cran-tidyr
