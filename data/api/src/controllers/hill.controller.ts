@@ -26,7 +26,7 @@ const getSince = (req: Request, res: Response) => {
         res.status(500).send({
             success: false,
             error: "DATABASE ERROR",
-            result: null
+            result: err
         })
     })
 }
@@ -41,7 +41,7 @@ const getRecent = (req: Request, res: Response) => {
         res.status(500).send({
             success: false,
             error: "DATABASE ERROR",
-            result: null
+            result: err
         })
     })
 }
