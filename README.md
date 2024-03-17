@@ -2,25 +2,31 @@
 
 An application that stores data about the busyness of NCSU's libraries and compiles it into an html summary using rmarkdown.
 
-# Containers
+# Design
 
-## `data/api`
+## Architecture
+
+![architecture](design.png)
+
+## Containers
+
+### `data/api`
 
 A Node/TypeScript/Express API for interacting with the database. Includes routes for creating records and getting records--either all records, `n` recent records, or records since a given datetime.
 
-## `data/db`
+### `data/db`
 
 Handles the MySQL database. Contains one script other than the Dockerfile, `schema.sql`, that is run on container startup and creates tables if they do not exist.
 
-## `knitter`
+### `knitter`
 
 Contains functionality for knitting the `rmarkdown` file into an html document. Note that in development, using `renv` is preferred; however, while using docker, `R` packages are installed using `apt` to speed up image build time.
 
-## `server`
+### `server`
 
 Handles an NGINX web server that serves the knitted `rmarkdown` html file.
 
-## `updater`
+### `updater`
 
 Contains a python script that fetches current occupancy data and sends it to the TypeScript API.
 
