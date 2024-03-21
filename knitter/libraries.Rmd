@@ -18,19 +18,17 @@ hill_data <- hill_data$result
 hunt_data <- hunt_data$result
 
 to_datetime <- function(datetime_string) {
-  return(
+  datetime <-
     as.POSIXct(
       substr(datetime_string, 0, 18),
-      tz = "", format = "%Y-%m-%dT%H:%M:%OS"
+      format = "%Y-%m-%dT%H:%M:%OS",
+      tz = "Etc/GMT+0"
     )
-  )
+  return(datetime)
 }
 
-entries_since <- function(entries, datetimes, hours_ago) {
-  most_recent_datetime <- max(datetimes)
-  n_hrs_ago <- most_recent_datetime - 60 * 60 * hours_ago
-  entries_since <- subset(entries, datetimes >= n_hrs_ago)
-  return(entries_since)
+datetime_to_local <- function(datetime) {
+  return(format(datetime, tz = "America/New_York", usetz = TRUE))
 }
 
 get_active_text <- function(active) {
@@ -69,7 +67,7 @@ most_recent_entry <- head(hill_data, n = 1)
 
 ### Current
 
-#### As of `r most_recent_entry$record_datetime` there are `r most_recent_entry$total_count` people in Hill (`r most_recent_entry$total_percent * 100`% capacity)
+#### As of `r datetime_to_local(to_datetime(most_recent_entry$record_datetime))` there are `r most_recent_entry$total_count` people in Hill (`r most_recent_entry$total_percent * 100`% capacity)
 
 East: `r most_recent_entry$east_count` (`r most_recent_entry$east_percent * 100`% capacity)
 
@@ -77,30 +75,16 @@ Tower: `r most_recent_entry$tower_count` (`r most_recent_entry$tower_percent * 1
 
 West: `r most_recent_entry$west_count` (`r most_recent_entry$west_percent * 100`% capacity)
 
-### Recent
-```{r echo=FALSE}
-past_week_entries <-
-  entries_since(hill_data, hill_datetimes, 24 * 7)
-
-past_day_entries <-
-  entries_since(hill_data, hill_datetimes, 24)
-
-past_three_hrs_entries <-
-  entries_since(hill_data, hill_datetimes, 3)
-```
-
-| Since           | Average Total Count                         | Average Overall Percent                             |
-| --------------- | ------------------------------------------- | --------------------------------------------------- |
-| Three hours ago | `r mean(past_three_hrs_entries$total_count)`| `r mean(past_three_hrs_entries$total_percent) * 100`|
-| One day ago     | `r mean(past_day_entries$total_count)`      | `r mean(past_day_entries$total_percent) * 100`      |
-| One week ago    | `r mean(past_week_entries$total_count)`     | `r mean(past_week_entries$total_percent) * 100`     |
-
 ```{r echo=FALSE, fig.width=10, fig.height=6}
 ggplot(hill_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   geom_area(alpha = 0.5, colour = "black", linewidth = 0.2) +
   xlab("Datetime") +
   ylab("# of people") +
-  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_x_datetime(
+    expand = c(0, 0),
+    date_minor_breaks = "1 day",
+    timezone = "America/New_York"
+  ) +
   scale_y_continuous(expand = c(0, 0))
 ```
 
@@ -109,7 +93,11 @@ ggplot(hill_percents, aes(x = record_datetime, y = total)) +
   geom_area(colour = "black", linewidth = 0.5, fill = "blue", alpha = 0.3) +
   xlab("Datetime") +
   ylab("% capacity") +
-  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_x_datetime(
+    expand = c(0, 0),
+    date_minor_breaks = "1 day",
+    timezone = "America/New_York"
+  ) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1))
 ```
 
@@ -146,7 +134,7 @@ most_recent_entry <- head(hunt_data, n = 1)
 
 ### Current
 
-#### As of `r most_recent_entry$record_datetime` there are `r most_recent_entry$total_count` people in Hunt (`r most_recent_entry$total_percent * 100`% capacity)
+#### As of `r datetime_to_local(to_datetime(most_recent_entry$record_datetime))` there are `r most_recent_entry$total_count` people in Hunt (`r most_recent_entry$total_percent * 100`% capacity)
 
 Level 2: `r most_recent_entry$level2_count` (`r most_recent_entry$level2_percent * 100`% capacity)
 
@@ -156,31 +144,16 @@ Level 4: `r most_recent_entry$level4_count` (`r most_recent_entry$level4_percent
 
 Level 5: `r most_recent_entry$level5_count` (`r most_recent_entry$level5_percent * 100`% capacity)
 
-### Recent
-
-```{r echo=FALSE}
-past_week_entries <-
-  entries_since(hunt_data, hunt_datetimes, 24 * 7)
-
-past_day_entries <-
-  entries_since(hunt_data, hunt_datetimes, 24)
-
-past_three_hrs_entries <-
-  entries_since(hunt_data, hunt_datetimes, 3)
-```
-
-| Since           | Average Total Count                         | Average Overall Percent                             |
-| --------------- | ------------------------------------------- | --------------------------------------------------- |
-| Three hours ago | `r mean(past_three_hrs_entries$total_count)`| `r mean(past_three_hrs_entries$total_percent) * 100`|
-| One day ago     | `r mean(past_day_entries$total_count)`      | `r mean(past_day_entries$total_percent) * 100`      |
-| One week ago    | `r mean(past_week_entries$total_count)`     | `r mean(past_week_entries$total_percent) * 100`     |
-
 ```{r echo=FALSE, fig.width=10, fig.height=6}
 ggplot(hunt_counts_long, aes(x = record_datetime, y = people, fill = zone)) +
   geom_area(alpha = 0.5, colour = "black", linewidth = 0.2) +
   xlab("Datetime") +
   ylab("# of people") +
-  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_x_datetime(
+    expand = c(0, 0),
+    date_minor_breaks = "1 day",
+    timezone = "America/New_York"
+  ) +
   scale_y_continuous(expand = c(0, 0))
 ```
 
@@ -189,7 +162,11 @@ ggplot(hunt_percents, aes(x = record_datetime, y = total)) +
   geom_area(colour = "black", linewidth = 0.5, fill = "blue", alpha = 0.3) +
   xlab("Datetime") +
   ylab("% capacity") +
-  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_x_datetime(
+    expand = c(0, 0),
+    date_minor_breaks = "1 day",
+    timezone = "America/New_York"
+  ) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1))
 ```
 
@@ -219,7 +196,11 @@ ggplot(
   geom_line(linewidth = 1) +
   xlab("Datetime") +
   ylab("# of people") +
-  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_x_datetime(
+    expand = c(0, 0),
+    date_minor_breaks = "1 day",
+    timezone = "America/New_York"
+  ) +
   scale_y_continuous(expand = c(0, 0))
 ```
 
@@ -233,6 +214,10 @@ ggplot(
   geom_line(linewidth = 1) +
   xlab("Datetime") +
   ylab("% capacity") +
-  scale_x_datetime(expand = c(0, 0), date_minor_breaks = "1 day") +
+  scale_x_datetime(
+    expand = c(0, 0),
+    date_minor_breaks = "1 day",
+    timezone = "America/New_York"
+  ) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1))
 ```
