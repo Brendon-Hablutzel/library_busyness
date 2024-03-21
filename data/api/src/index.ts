@@ -10,6 +10,14 @@ app.use(bodyParser.json());
 // automatically parses url arguments
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// logging
+app.use((req, res, next) => {
+    let currentDateTime = new Date();
+    // prints in UTC time
+    console.log(currentDateTime.toISOString(), req.ip, req.method, req.hostname, req.path);
+    next();
+})
+
 app.use('/api', routes);
 
 const port = process.env.API_PORT || 3000;
