@@ -80,8 +80,8 @@ class DataStoreInterface:
 
 
 class BusynessAPI(DataStoreInterface):
-    def __init__(self):
-        self.api_base_url = f"http://{os.getenv('API_HOST')}:{os.getenv('API_PORT')}"
+    def __init__(self, api_host: str, api_port: str):
+        self.api_base_url = f"http://{api_host}:{api_port}"
 
     def insert_hill_record(self, record: HillRecord):
         url = self.api_base_url + "/api/hill"
@@ -207,9 +207,17 @@ def log_hunt_data(db: DataStoreInterface, current_datetime: datetime.datetime):
 
 
 def main():
+    api_host = os.getenv("API_HOST")
+    if api_host is None:
+        raise Exception("API_HOST is not set")
+
+    api_port = os.getenv("API_PORT")
+    if api_port is None:
+        raise Exception("API_PORT is not set")
+
     current_datetime = datetime.datetime.now()
 
-    api = BusynessAPI()
+    api = BusynessAPI(api_host, api_port)
 
     try:
         log_hill_data(api, current_datetime)

@@ -2,11 +2,31 @@ library(rmarkdown)
 library(jsonlite)
 library(httr2)
 
+unset_env_vars <- FALSE
+
+api_host <- Sys.getenv("API_HOST")
+
+if (api_host == "") {
+  warning("API_HOST is not set")
+  unset_env_vars <- TRUE
+}
+
+api_port <- Sys.getenv("API_PORT")
+
+if (api_port == "") {
+  warning("API_PORT is not set")
+  unset_env_vars <- TRUE
+}
+
+if (unset_env_vars) {
+  quit(status = 1)
+}
+
 base_api_url <- paste(
   "http://",
-  Sys.getenv("API_HOST"),
+  api_host,
   ":",
-  Sys.getenv("API_PORT"),
+  api_port,
   "/api",
   sep = ""
 )
