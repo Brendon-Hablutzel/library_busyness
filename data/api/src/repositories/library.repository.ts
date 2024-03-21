@@ -1,5 +1,3 @@
-
-
 interface ILibraryRepository<LibraryRecord> {
     getAll: () => Promise<LibraryRecord[]>
     getSince: (since: string) => Promise<LibraryRecord[]>

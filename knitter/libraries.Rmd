@@ -14,8 +14,28 @@ params:
 library(ggplot2)
 library(tidyr)
 
+# extract data from the json response
 hill_data <- hill_data$result
 hunt_data <- hunt_data$result
+
+get_active_text <- function(active) {
+  if (active == 1) {
+    return("data source is active--everything is up-to-date")
+  } else {
+    return("data source is not active--some data may be out-of-date")
+  }
+}
+
+# get whether each library is active
+is_hill_active <- head(hill_data, n = 1)$active
+hill_active_text <- get_active_text(is_hill_active)
+
+is_hunt_active <- head(hunt_data, n = 1)$active
+hunt_active_text <- get_active_text(is_hunt_active)
+
+# filter to just the active rows for data processing
+hill_data <- hill_data[hill_data$active == 1, ]
+hunt_data <- hunt_data[hunt_data$active == 1, ]
 
 to_datetime <- function(datetime_string) {
   datetime <-
@@ -29,14 +49,6 @@ to_datetime <- function(datetime_string) {
 
 datetime_to_local <- function(datetime) {
   return(format(datetime, tz = "America/New_York", usetz = TRUE))
-}
-
-get_active_text <- function(active) {
-  if (active == 1) {
-    return("is active")
-  } else {
-    return("is not active")
-  }
 }
 ```
 
@@ -61,7 +73,7 @@ hill_percents <- data.frame(
 most_recent_entry <- head(hill_data, n = 1)
 ```
 
-## Hill `r get_active_text(most_recent_entry$active)`
+Hill `r hill_active_text`
 
 ## Stats
 
@@ -128,7 +140,7 @@ hunt_percents <- data.frame(
 most_recent_entry <- head(hunt_data, n = 1)
 ```
 
-## Hunt `r get_active_text(most_recent_entry$active)`
+Hunt `r hunt_active_text`
 
 ## Stats
 
