@@ -18,6 +18,10 @@ A Node/TypeScript/Express API for interacting with the database. Includes routes
 
 Handles the MySQL database. Contains one script other than the Dockerfile, `schema.sql`, that is run on container startup and creates tables if they do not exist.
 
+### `data/backup`
+
+When run, saves all recorded occupancy data to CSV files.
+
 ### `knitter`
 
 Contains functionality for knitting the `rmarkdown` file into an html document. Note that in development, using `renv` is preferred; however, while using docker, `R` packages are installed using `apt` to speed up image build time.
@@ -29,10 +33,6 @@ Handles an NGINX web server that serves the knitted `rmarkdown` html file.
 ### `updater`
 
 Contains a python script that fetches current occupancy data and sends it to the TypeScript API.
-
-### `backup`
-
-When run, saves all recorded occupancy data to CSV files.
 
 # Deployment with Docker
 
