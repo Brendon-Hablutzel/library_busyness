@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   db:
     build:
@@ -77,6 +75,22 @@ services:
         condition: service_healthy
     expose:
       - 3000
+
+  backup:
+    build:
+      context: data/backup
+    environment:
+      - API_HOST=api
+      - API_PORT=3000
+    networks:
+      - front-net
+    volumes:
+      - type: bind
+        source: ./data/backup/export
+        target: /backup/export
+    depends_on:
+      api:
+        condition: service_started
 
 volumes:
   db-data:

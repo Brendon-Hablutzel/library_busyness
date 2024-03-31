@@ -30,6 +30,10 @@ Handles an NGINX web server that serves the knitted `rmarkdown` html file.
 
 Contains a python script that fetches current occupancy data and sends it to the TypeScript API.
 
+### `backup`
+
+When run, saves all recorded occupancy data to CSV files.
+
 # Deployment with Docker
 
 Required environment variables:
@@ -48,5 +52,7 @@ Start nginx server: `docker compose up server -d`
 Run updater and stop api and database afterward: `docker compose run --rm updater && docker compose down api && docker compose down db`
 
 Run knitter and stop api and database afterward: `docker compose run --rm knitter && docker compose down api && docker compose down db`
+
+Backup data to CSV files: `docker compose run --rm backup`. NOTE: ensure that the `export` folder is present in the `data/backup` folder.
 
 Stop all services: `docker compose down`
