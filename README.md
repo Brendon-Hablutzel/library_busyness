@@ -34,6 +34,10 @@ Handles an NGINX web server that serves the knitted `rmarkdown` html file.
 
 Contains a python script that fetches current occupancy data and sends it to the TypeScript API.
 
+### `predictor/model`
+
+Contains a python script that trains a timeseries forecasting model on the busyness data, then sends some predictions back to the database
+
 # Deployment with Docker
 
 Required environment variables:
@@ -54,5 +58,7 @@ Run updater and stop api and database afterward: `docker compose run --rm update
 Run knitter and stop api and database afterward: `docker compose run --rm knitter && docker compose down api && docker compose down db`
 
 Backup data to CSV files: `docker compose run --rm backup`. NOTE: ensure that the `export` folder is present in the `data/backup` folder.
+
+Run model: `docker compose run --rm model`
 
 Stop all services: `docker compose down`
