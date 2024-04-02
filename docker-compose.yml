@@ -92,6 +92,18 @@ services:
       api:
         condition: service_started
 
+  model:
+    build:
+      context: predictor/model
+    environment:
+      - API_HOST=api
+      - API_PORT=3000
+    networks:
+      - front-net
+    depends_on:
+      api:
+        condition: service_started
+
 volumes:
   db-data:
   libraries-data:

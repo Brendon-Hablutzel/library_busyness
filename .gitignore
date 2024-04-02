@@ -4,4 +4,4 @@ venv/
 *.log
 *.csv
 .env
-updater/static/*.html
+knitter/static/*.html

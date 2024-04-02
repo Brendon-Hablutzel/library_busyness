@@ -30,5 +30,6 @@ export const connection = createPool({
     port: parseInt(process.env.MYSQL_PORT || '3306'),
     user: db_user,
     password: db_password,
-    database: db_name
+    database: db_name,
+    // timezone: '+00:00'
 });

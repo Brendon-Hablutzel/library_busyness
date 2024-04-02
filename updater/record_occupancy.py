@@ -26,7 +26,7 @@ class HillRecord:
 
     def to_json(self) -> dict:
         return {
-            "record_datetime": self.record_datetime.isoformat(" ", "seconds"),
+            "record_datetime": self.record_datetime.isoformat(" ", "seconds").split("+")[0],
             "active": self.active,
             "total_count": self.total_count,
             "total_percent": self.total_percent,
@@ -56,7 +56,7 @@ class HuntRecord:
 
     def to_json(self) -> dict:
         return {
-            "record_datetime": self.record_datetime.isoformat(" ", "seconds"),
+            "record_datetime": self.record_datetime.isoformat(" ", "seconds").split("+")[0],
             "active": self.active,
             "total_count": self.total_count,
             "total_percent": self.total_percent,
@@ -215,7 +215,7 @@ def main():
     if api_port is None:
         raise Exception("API_PORT is not set")
 
-    current_datetime = datetime.datetime.now()
+    current_datetime = datetime.datetime.now(datetime.timezone.utc)
 
     api = BusynessAPI(api_host, api_port)
 

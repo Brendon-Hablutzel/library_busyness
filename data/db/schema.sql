@@ -25,3 +25,17 @@ CREATE TABLE IF NOT EXISTS hunt (
     level5_count SMALLINT(5),
     level5_percent FLOAT
 );
+
+CREATE TABLE IF NOT EXISTS hill_pred (
+    record_datetime DATETIME PRIMARY KEY,
+    total_percent FLOAT,
+    total_percent_lower FLOAT,
+    total_percent_upper FLOAT
+);
+
+CREATE TABLE IF NOT EXISTS hunt_pred (
+    record_datetime DATETIME PRIMARY KEY,
+    total_percent FLOAT,
+    total_percent_lower FLOAT,
+    total_percent_upper FLOAT
+);
