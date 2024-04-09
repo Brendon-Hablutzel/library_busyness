@@ -73,8 +73,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    expose:
-      - 3000
+    ports:
+      - 3000:3000
 
   backup:
     build:
@@ -92,7 +92,7 @@ services:
       api:
         condition: service_started
 
-  model:
+  predictor_model:
     build:
       context: predictor/model
     environment:
@@ -103,6 +103,20 @@ services:
     depends_on:
       api:
         condition: service_started
+
+  predictor_frontend:
+    build:
+      context: predictor/frontend
+      args:
+        - REACT_APP_API_HOST=localhost
+        - REACT_APP_API_PORT=3000
+    networks:
+      - front-net
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - 8080:8080
 
 volumes:
   db-data:
