@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:20.8.0
 
 WORKDIR /api
 
@@ -6,8 +6,9 @@ COPY package*.json .
 
 RUN npm i
 
-COPY . .
+COPY tsconfig.json .
+COPY src src
 
 RUN ["npm", "run", "build"]
 
-CMD ["npm", "run", "serve"]
+CMD ["node", "dist/index.js"]
