@@ -38,6 +38,10 @@ Contains a python script that fetches current occupancy data and sends it to the
 
 Contains a python script that trains a timeseries forecasting model on the busyness data, then sends some predictions back to the database
 
+### `predictor/frontend`
+
+Contains the React frontend for the predictions. Displays an interactive table and graph of future predictions.
+
 # Deployment with Docker
 
 Required environment variables:
@@ -53,12 +57,14 @@ Other environment variables and their defaults:
 
 Start nginx server: `docker compose up server -d`
 
-Run updater and stop api and database afterward: `docker compose run --rm updater && docker compose down api && docker compose down db`
+Run updater: `docker compose run --rm updater`
 
-Run knitter and stop api and database afterward: `docker compose run --rm knitter && docker compose down api && docker compose down db`
+Run knitter: `docker compose run --rm knitter`
 
 Backup data to CSV files: `docker compose run --rm backup`. NOTE: ensure that the `export` folder is present in the `data/backup` folder.
 
-Run model: `docker compose run --rm model`
+Run predictor model: `docker compose run --rm predictor_model`
+
+Start predictor frontend: `docker compose up predictor_frontend`
 
 Stop all services: `docker compose down`
